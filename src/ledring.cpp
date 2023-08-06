@@ -13,7 +13,7 @@ void initNeopixel(Adafruit_NeoPixel* neoPixel) {
   ledRing->begin();
   ledRing->clear();
   //ledRing->setPixelColor(0, ledRing->Color(0, 0, 150));
-  //ledRing->show();
+  ledRing->show();
 }
 
 void setEfeitoSelecionado(char efeito) {
