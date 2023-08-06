@@ -26,7 +26,7 @@ void setup() {
   initNeopixel(&pixels);
   // pinMode(BT1, INPUT_PULLUP);
   pinMode(BT_RESET, INPUT);
-
+  
   WiFiManager wifiManager;
   wifiManager.setConfigPortalTimeout(240);
 
@@ -61,12 +61,13 @@ void read_keyb() {
     flag1 = 1;
   }
 
-  if (digitalRead(BT_RESET) && flag1) {
-    WiFiManager wm;
-    wm.resetSettings();
+  if (digitalRead(BT_RESET) && flag1) {    
+    WiFiManager wifiManager;
+    wifiManager.resetSettings();
+    ESP.eraseConfig();
     Serial.println(F("Configurações resetadas"));
-    ESP.restart();
     flag1 = 0;
-    delay(130);
+    delay(2000);
+    ESP.reset();
   }
 }
