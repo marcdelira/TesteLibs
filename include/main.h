@@ -3,6 +3,7 @@
 
   #include <Arduino.h>
   #include "ledring.h"
+  #include "netconfig.h"
+  #include "webserver.h"
 
-
-#endif
+#endif //MAIN_h

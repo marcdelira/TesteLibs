@@ -1,9 +1,13 @@
 #include "ledring.h"
 
+#define QTDE_EFEITOS 4
+
+void printEfeitoSelecionado();
+
 Adafruit_NeoPixel* ledRing;
-char efeitoSelecionado = 0;
+static int efeitoSelecionado = 0;
 bool habilitaEfeitoConectando = false;
-bool habilitaEfeitoHeartBeat  = false;
+bool habilitaEfeitoHeartBeat = false;
 
 void initNeopixel(Adafruit_NeoPixel* neoPixel) {
   ledRing = neoPixel;
@@ -16,8 +20,11 @@ void initNeopixel(Adafruit_NeoPixel* neoPixel) {
   ledRing->show();
 }
 
-void setEfeitoSelecionado(char efeito) {
-  efeitoSelecionado = efeito;
+void mudaEfeito() {
+  efeitoSelecionado++;
+  if (efeitoSelecionado > QTDE_EFEITOS - 1) {
+    efeitoSelecionado = 0;
+  }
 }
 
 void colorWipe(uint32_t color32, boolean isDelay) {
@@ -35,6 +42,7 @@ void heartBeat() {
             picoVentriculo  = 255;
   
   ledRing->clear();
+  ledRing->show();
   
   // movimento átrio
   for (int i = batimentoMinimo - 20; i <= picoAtrio; i = i + 15) {
@@ -92,7 +100,7 @@ void efeitoConectando() {
   uint32_t color32;
   static bool acende = true;
   static ulong timeSave = 0;
-  uint espera = 741;
+  uint espera = 350;
   static u_char index = 0;
 
   if (acende) {
@@ -116,20 +124,67 @@ void efeitoConectando() {
 
 }
 
-void handleLedRing() {
+void desligaLedRing() {
+  efeitoSelecionado = 0;
+  ledRing->clear();
+  ledRing->show();
+}
 
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return ledRing->Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return ledRing->Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return ledRing->Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+
+// Slightly different, this makes the rainbow equally distributed throughout
+void rainbowCycle(uint8_t wait) {
+  uint16_t i;
+  static uint16_t j = 0;
+
+  j++;
+  if (j >= 256) {
+    j = 0;
+  }
+
+  //for(j=0; j<256*2; j++) { // 5 cycles of all colors on wheel
+  for(i=0; i< ledRing->numPixels(); i++) {
+    ledRing->setPixelColor(i, Wheel(((i * 256 / ledRing->numPixels()) + j) & 255));
+  }
+  ledRing->show();
+  delay(wait);
+  //}
+}
+
+void handleLedRing() {
+  
   switch (efeitoSelecionado) {
+    case 0:
+      desligaLedRing();
+      break;
     case 1:
-      habilitaEfeitoConectando = !habilitaEfeitoConectando;
-      if (habilitaEfeitoConectando)
-        efeitoConectando();
+      efeitoConectando();
       break;
     case 2:
-      habilitaEfeitoHeartBeat = !habilitaEfeitoHeartBeat;
-      if (habilitaEfeitoHeartBeat)
-        heartBeat();
+      rainbowCycle(8);
+      break;
+    case 3:
+      heartBeat();
       break;
     default:
       efeitoSelecionado = 0;
   }
+}
+
+void printEfeitoSelecionado() {
+  Serial.print("efeitoSelecionado: ");
+  Serial.println(efeitoSelecionado);
 }

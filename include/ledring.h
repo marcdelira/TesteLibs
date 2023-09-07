@@ -17,7 +17,8 @@
   void heartBeat();
   void efeitoConectando();
   void handleLedRing();
-  void setEfeitoSelecionado(char efeito);
+  void mudaEfeito();
+  void rainbowCycle(uint8_t wait);
   //void pulse();
 
 

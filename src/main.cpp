@@ -1,73 +1,50 @@
 #include "main.h"
 
-#include <ESP8266WebServer.h>
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-//#include <ESP8266mDNS.h>
-
-#include <DNSServer.h>
-#include <WiFiManager.h>
-
-
-
-//#define HTTP_REST_PORT 8080
-//ESP8266WebServer httpRestServer(HTTP_REST_PORT);
-
 #define BT_RESET 4
+#define BT_CHNG_MODE 2
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel();
 
-//void getHelloWorld();
-//void restServerRouting();
 void read_keyb();
 
 void setup() {
   Serial.begin(115200);
-  initNeopixel(&pixels);
-  // pinMode(BT1, INPUT_PULLUP);
+  pinMode(BT_CHNG_MODE, INPUT_PULLUP);
   pinMode(BT_RESET, INPUT);
-  
-  WiFiManager wifiManager;
-  wifiManager.setConfigPortalTimeout(240);
-
-  // Cria um access point chamado "nome da rede" e senha "senha"
-  if (!wifiManager.autoConnect("ESP_ARDUINOECIA", "arduinoecia")) {
-    Serial.println(F("Falha na conexão. Resetar e tentar novamente..."));
-    delay(3000);
-    ESP.restart();
-    delay(5000);
-  }
-
-  // mensagem em caso de conexão bem sucedida
-  Serial.println(F("Conectando na rede Wifi"));
-  Serial.print(F("Endereço IP: "));
-  Serial.println(WiFi.localIP());
+  initNeopixel(&pixels);
+  initNetworkService();
+  initRestWebServer();
 }
 
 void loop() {
   //heartBeat();
   //efeitoConectando();
   read_keyb();
-  // handleLedRing();
+  handleLedRing();
+  restWebServerHandleClient();
 }
 
-void getHelloWorld() {}
-void restServerRouting() {}
-
 void read_keyb() {
-  static char flag1 = 0;
+  static char flag1 = 0,
+              flag2 = 0;
 
   if (!digitalRead(BT_RESET)) {
     flag1 = 1;
   }
 
+  if (digitalRead(BT_CHNG_MODE)) {
+    flag2 = 1;
+  }
+  
+  if (!digitalRead(BT_CHNG_MODE) && flag2) {
+    flag2 = 0;
+    delay(130);
+    mudaEfeito();
+  }
+
   if (digitalRead(BT_RESET) && flag1) {    
-    WiFiManager wifiManager;
-    wifiManager.resetSettings();
-    ESP.eraseConfig();
-    Serial.println(F("Configurações resetadas"));
     flag1 = 0;
-    delay(2000);
-    ESP.reset();
+    delay(130);
+    resetNetworkConfig();
   }
 }
